@@ -4,7 +4,7 @@ import tempfile
 import base64
 from pathlib import Path
 import time
-from cro_bot import CROUXBot
+from cro_bot import CROAnalyzer
 
 # Page configuration
 st.set_page_config(
@@ -258,3 +258,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
