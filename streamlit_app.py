@@ -191,25 +191,33 @@ def main():
                 if result:
                     st.success("✅ Analysis completed successfully!")
                     
-                    # Display results
-                    st.markdown("### 📄 Generated Report")
-                    
-                    # Create download button for PDF
-                    with open(result, "rb") as file:
-                        pdf_data = file.read()
-                        b64_pdf = base64.b64encode(pdf_data).decode()
+                    # Generate PDF report from the analysis results
+                    try:
+                        pdf_path = bot.create_pdf_report(result)
                         
-                        st.download_button(
-                            label="📥 Download PDF Report",
-                            data=pdf_data,
-                            file_name=f"cro_ux_analysis_{url.replace('://', '_').replace('/', '_').replace('.', '_')}.pdf",
-                            mime="application/pdf",
-                            use_container_width=True
-                        )
-                    
-                    # Show preview of the report
-                    st.markdown("### 📋 Report Preview")
-                    st.info("Click the download button above to get the full PDF report with detailed analysis and recommendations.")
+                        # Display results
+                        st.markdown("### 📄 Generated Report")
+                        
+                        # Create download button for PDF
+                        with open(pdf_path, "rb") as file:
+                            pdf_data = file.read()
+                            b64_pdf = base64.b64encode(pdf_data).decode()
+                            
+                            st.download_button(
+                                label="📥 Download PDF Report",
+                                data=pdf_data,
+                                file_name=f"cro_ux_analysis_{url.replace('://', '_').replace('/', '_').replace('.', '_')}.pdf",
+                                mime="application/pdf",
+                                use_container_width=True
+                            )
+                        
+                        # Show preview of the report
+                        st.markdown("### 📋 Report Preview")
+                        st.info("Click the download button above to get the full PDF report with detailed analysis and recommendations.")
+                        
+                    except Exception as pdf_error:
+                        st.error(f"❌ Error generating PDF report: {str(pdf_error)}")
+                        st.info("Analysis completed but PDF generation failed. Check the console for details.")
                     
                 else:
                     st.error("❌ Analysis failed. Please check your API key and try again.")
