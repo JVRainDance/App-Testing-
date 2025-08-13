@@ -99,7 +99,7 @@ def main():
             min_value=1,
             max_value=10,
             value=3,
-            help="Maximum number of pages to analyze when crawling a website"
+            help="Maximum total number of pages to analyze when crawling a website (includes all pages found at any depth)"
         )
         
         st.markdown("---")
@@ -115,9 +115,9 @@ def main():
         st.markdown("---")
         st.markdown("### 🔧 Requirements")
         st.markdown("""
-        - OpenAI API key with credits
         - Internet connection
         - Valid website URL
+        - OpenAI API credits (configured)
         """)
     
     # Main content area
@@ -143,13 +143,7 @@ def main():
                 help="Analyze multiple pages from the same website"
             )
         
-        with col1_2:
-            if crawl_site:
-                crawl_depth = st.selectbox(
-                    "Crawl Depth",
-                    [1, 2, 3],
-                    help="How deep to crawl the website structure"
-                )
+
         
         # Analyze button
         if st.button("🚀 Start Analysis", type="primary", use_container_width=True):
@@ -157,9 +151,7 @@ def main():
                 st.error("Please enter a website URL")
                 return
             
-            if not api_key:
-                st.error("Please enter your OpenAI API key in the sidebar")
-                return
+
             
             # Initialize bot
             try:
@@ -218,11 +210,11 @@ def main():
                         st.info("Analysis completed but PDF generation failed. Check the console for details.")
                     
                 else:
-                    st.error("❌ Analysis failed. Please check your API key and try again.")
+                    st.error("❌ Analysis failed. Please try again.")
                     
             except Exception as e:
                 st.error(f"❌ Error during analysis: {str(e)}")
-                st.info("💡 Make sure your OpenAI API key is valid and has sufficient credits.")
+                st.info("💡 Make sure the website URL is valid and accessible.")
     
     with col2:
         st.header("📈 Sample Output")
@@ -259,7 +251,7 @@ def main():
         - Use "CRO + UX" for comprehensive analysis
         - Enable JavaScript rendering for dynamic sites
         - Crawl multiple pages for deeper insights
-        - Check your OpenAI API credits before starting
+        - Ensure the website URL is accessible
         """)
 
 if __name__ == "__main__":
