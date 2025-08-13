@@ -70,7 +70,7 @@ def main():
         st.header("⚙️ Configuration")
         
         # API Key (hardcoded)
-        api_key = "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"
+        api_key = "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"
         
         st.info("🔑 API Key configured and ready to use")
         
