@@ -142,6 +142,9 @@ def main():
                 value=False,
                 help="Analyze multiple pages from the same website"
             )
+            
+            if crawl_site:
+                st.warning("⚠️ Crawling multiple pages uses more API credits and may hit rate limits. Start with 1-3 pages to test.")
         
 
         
@@ -179,7 +182,16 @@ def main():
                     status_text.text("Generating PDF report...")
                 
                 if result:
-                    st.success("✅ Analysis completed successfully!")
+                    # Check if it's a website analysis with status info
+                    if isinstance(result, dict) and 'status' in result:
+                        if result['status'] == 'completed':
+                            st.success(f"✅ {result['message']}")
+                        elif result['status'] == 'failed':
+                            st.error(f"❌ {result['message']}")
+                        else:
+                            st.warning(f"⚠️ {result['message']}")
+                    else:
+                        st.success("✅ Analysis completed successfully!")
                     
                     # Generate PDF report from the analysis results
                     try:
