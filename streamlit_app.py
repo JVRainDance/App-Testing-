@@ -69,12 +69,10 @@ def main():
     with st.sidebar:
         st.header("⚙️ Configuration")
         
-        # API Key input
-        api_key = st.text_input(
-            "OpenAI API Key",
-            type="password",
-            help="Enter your OpenAI API key. Get one from https://platform.openai.com/api-keys"
-        )
+        # API Key (hardcoded)
+        api_key = "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"
+        
+        st.info("🔑 API Key configured and ready to use")
         
         # Audit type selection
         audit_type = st.selectbox(
