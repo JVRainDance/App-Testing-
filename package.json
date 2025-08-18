@@ -20,7 +20,6 @@
     "@types/react-dom": "^18.2.18",
     "posthog-js": "^1.96.1",
     "axios": "^1.6.2",
-    "cheerio": "^1.0.0-rc.12",
     "puppeteer": "^21.6.1",
     "jspdf": "^2.5.1",
     "html2canvas": "^1.4.1",
@@ -50,8 +49,7 @@
   },
   "devDependencies": {
     "eslint": "^8.56.0",
-    "eslint-config-next": "14.0.4",
-    "@types/cheerio": "^0.22.35"
+    "eslint-config-next": "14.0.4"
   },
   "engines": {
     "node": ">=18.0.0"

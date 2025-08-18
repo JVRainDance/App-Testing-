@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
-import * as cheerio from 'cheerio'
 import OpenAI from 'openai'
 
 // Initialize OpenAI
@@ -137,16 +136,38 @@ async function fetchWebsiteContent(url: string) {
       }
     })
     
-    const $ = cheerio.load(response.data)
+    const html = response.data
     
-    // Extract key information
-    const title = $('title').text().trim()
-    const description = $('meta[name="description"]').attr('content') || ''
-    const headings = $('h1, h2, h3').map((_, el) => $(el).text().trim()).get()
-    const links = $('a[href]').map((_, el) => $(el).attr('href')).get()
-    const images = $('img').map((_, el) => $(el).attr('alt')).get()
-    const forms = $('form').length
-    const buttons = $('button, input[type="submit"], .btn, .button').length
+    // Extract key information using regex
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+    const title = titleMatch ? titleMatch[1].trim() : ''
+    
+    const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
+    const description = descMatch ? descMatch[1] : ''
+    
+    const headings = []
+    const h1Matches = html.match(/<h1[^>]*>([^<]+)<\/h1>/gi) || []
+    const h2Matches = html.match(/<h2[^>]*>([^<]+)<\/h2>/gi) || []
+    const h3Matches = html.match(/<h3[^>]*>([^<]+)<\/h3>/gi) || []
+    
+    headings.push(...h1Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
+    headings.push(...h2Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
+    headings.push(...h3Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
+    
+    const linkMatches = html.match(/<a[^>]*href=["']([^"']+)["'][^>]*>/gi) || []
+    const links = linkMatches.map(link => {
+      const hrefMatch = link.match(/href=["']([^"']+)["']/i)
+      return hrefMatch ? hrefMatch[1] : ''
+    }).filter(link => link)
+    
+    const imgMatches = html.match(/<img[^>]*alt=["']([^"']+)["'][^>]*>/gi) || []
+    const images = imgMatches.map(img => {
+      const altMatch = img.match(/alt=["']([^"']+)["']/i)
+      return altMatch ? altMatch[1] : ''
+    }).filter(alt => alt)
+    
+    const forms = (html.match(/<form[^>]*>/gi) || []).length
+    const buttons = (html.match(/<(button|input[^>]*type=["']submit["'])[^>]*>/gi) || []).length
     
     return {
       title,
