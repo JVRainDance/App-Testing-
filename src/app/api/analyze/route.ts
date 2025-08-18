@@ -195,7 +195,7 @@ Description: ${content.description}
 Headings: ${content.headings.join(', ')}
 Number of Forms: ${content.forms}
 Number of Buttons: ${content.buttons}
-Images with Alt Text: ${content.images.filter(img => img).length}/${content.images.length}
+Images with Alt Text: ${content.images.filter((img: string) => img).length}/${content.images.length}
 
 Please analyze each question and provide:
 1. Answer: "yes", "no", or "needs_work"
@@ -293,7 +293,7 @@ function generateRecommendations(croAnalysis: any[], uxAnalysis: any[]) {
   // High priority recommendations
   const highPriority = [...croAnalysis, ...uxAnalysis]
     .flatMap(cat => cat.questions)
-    .filter(q => q.priority === 'high' && q.answer !== 'yes')
+    .filter((q: any) => q.priority === 'high' && q.answer !== 'yes')
     .slice(0, 5)
   
   highPriority.forEach(q => {
@@ -310,7 +310,7 @@ function generateRecommendations(croAnalysis: any[], uxAnalysis: any[]) {
   // Medium priority recommendations
   const mediumPriority = [...croAnalysis, ...uxAnalysis]
     .flatMap(cat => cat.questions)
-    .filter(q => q.priority === 'medium' && q.answer !== 'yes')
+    .filter((q: any) => q.priority === 'medium' && q.answer !== 'yes')
     .slice(0, 3)
   
   mediumPriority.forEach(q => {
