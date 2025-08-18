@@ -19,7 +19,6 @@
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "posthog-js": "^1.96.1",
-    "@posthog/plugin-scaffold": "^0.0.1",
     "axios": "^1.6.2",
     "cheerio": "^1.0.0-rc.12",
     "puppeteer": "^21.6.1",
