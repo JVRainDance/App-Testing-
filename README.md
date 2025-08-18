@@ -1,19 +1,19 @@
-# CRO UX Analysis Bot 🤖
+# CRO-UX Analysis Tool v2.0 🚀
 
-A powerful AI-powered Conversion Rate Optimization (CRO) and User Experience (UX) analysis tool that provides comprehensive website audits with actionable recommendations.
+A modern, advanced Conversion Rate Optimization (CRO) and User Experience (UX) analysis tool built with Next.js and powered by PostHog analytics.
 
-## 🚀 Features
+## ✨ Features
 
-- **Comprehensive CRO Audit**: 15 structured questions across 7 categories
-- **Detailed UX Analysis**: 18 questions across 8 categories  
-- **AI-Powered Insights**: Uses GPT-4 for intelligent analysis and recommendations
-- **Professional PDF Reports**: Generates detailed, formatted reports
-- **Multiple Analysis Modes**: Single page, multiple pages, or entire website crawling
-- **JavaScript Rendering**: Optional Playwright support for dynamic content
-- **Actionable Recommendations**: Specific, implementable suggestions with priority levels
+- **Real-time Analytics**: PostHog integration for user behavior tracking
+- **AI-Powered Analysis**: GPT-4 powered website analysis
+- **Modern UI**: Beautiful, responsive interface built with Tailwind CSS
+- **Comprehensive Reports**: Detailed CRO and UX analysis with actionable recommendations
+- **Vercel Deployment**: Ready for instant deployment
+- **TypeScript**: Full type safety and better developer experience
 
-## 📋 CRO Audit Categories
+## 🎯 Analysis Categories
 
+### CRO Analysis (15 Questions)
 1. **Offers & Messaging** (4 questions)
 2. **Social Proof & Trust** (2 questions)
 3. **Analytics & Tracking** (2 questions)
@@ -22,8 +22,7 @@ A powerful AI-powered Conversion Rate Optimization (CRO) and User Experience (UX
 6. **Pricing & Friction** (2 questions)
 7. **Speed & Experimentation** (2 questions)
 
-## 🎨 UX Audit Categories
-
+### UX Analysis (18 Questions)
 1. **Performance & Stability** (2 questions)
 2. **Mobile-First Usability** (3 questions)
 3. **Navigation & Information Architecture** (2 questions)
@@ -33,144 +32,126 @@ A powerful AI-powered Conversion Rate Optimization (CRO) and User Experience (UX
 7. **Visual Design & Consistency** (2 questions)
 8. **Delight & Engagement** (2 questions)
 
-## 🛠️ Installation
+## 🚀 Quick Start
 
 ### Prerequisites
+- Node.js 18+ 
+- OpenAI API key
+- PostHog account (free tier available)
 
-- Python 3.8 or higher
-- OpenAI API key with GPT-4 access
-
-### Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/cro-ux-analysis-bot.git
-   cd cro-ux-analysis-bot
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Install Playwright (optional, for JavaScript rendering)**
-   ```bash
-   playwright install
-   ```
-
-4. **Set up your OpenAI API key**
-   ```bash
-   # Option 1: Environment variable
-   export OPENAI_API_KEY="your-api-key-here"
-   
-   # Option 2: Edit the script directly
-   # Open cro_bot.py and replace the api_key variable
-   ```
-
-## 🚀 Usage
-
-### Option 1: Command Line Interface
-
+### 1. Clone and Install
 ```bash
-python cro_bot.py
+git clone <your-repo-url>
+cd cro-ux-analysis-tool
+npm install
 ```
 
-### Option 2: Streamlit Web Interface (Recommended)
-
+### 2. Environment Setup
+Copy the example environment file and configure your keys:
 ```bash
-streamlit run streamlit_app.py
+cp env.example .env.local
 ```
 
-Then open your browser to `http://localhost:8501`
+Edit `.env.local` with your API keys:
+```env
+# PostHog Configuration
+NEXT_PUBLIC_POSTHOG_KEY=your-posthog-key
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 
-### Option 3: Deploy to Streamlit Cloud
-
-For easy deployment and sharing:
-
-1. **Upload all files** to a GitHub repository
-2. **Go to [share.streamlit.io](https://share.streamlit.io)**
-3. **Connect your GitHub repository**
-4. **Deploy with main file path**: `streamlit_app.py`
-
-📖 **See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions**
-
-### Command Line Options
-
-The bot provides an interactive menu with the following options:
-
-1. **Analyze single page** - Comprehensive CRO/UX audit of one webpage
-2. **Analyze multiple pages** - Audit several pages at once
-3. **Crawl and analyze entire website** - Discover and analyze all pages on a domain
-4. **Check site status** - Verify if a website is accessible
-5. **Exit**
-
-### Audit Types
-
-When analyzing a page, you can choose:
-
-- **CRO Audit only** (15 questions) - Focus on conversion optimization
-- **UX Audit only** (18 questions) - Focus on user experience
-- **Both CRO & UX Audit** (33 questions) - Comprehensive analysis
-
-### Output Options
-
-For each analysis, you can save results as:
-
-- **JSON file** - Raw data for further processing
-- **PDF report** - Professional formatted report
-- **Both** - Save in both formats
-
-## 📊 Sample Output
-
-The bot generates detailed reports including:
-
-### Structured Analysis
-- Question-by-question evaluation (Yes/No/Needs work)
-- Evidence-based findings
-- Quick-win suggestions for each issue
-
-### Priority Recommendations
-- **High Priority Fixes**: Critical issues with exact actions
-- **Medium Priority**: Important improvements with specific steps  
-- **Quick Wins**: Easy fixes implementable in under 1 hour
-
-### Scoring System
-- CRO Score: X/15 with percentage
-- UX Score: X/18 with percentage
-- Overall Grade: A/B/C/D/F
-
-## 🔧 Configuration
-
-### API Key Setup
-
-Edit `cro_bot.py` and replace the API key:
-
-```python
-api_key = "your-openai-api-key-here"
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key
 ```
 
-### Customization
+### 3. Run Development Server
+```bash
+npm run dev
+```
 
-You can modify the audit questions by editing the `get_cro_audit_questions()` and `get_ux_audit_questions()` methods in `cro_bot.py`.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
+
+## 🚀 Deploy to Vercel
+
+### Option 1: Deploy with Vercel CLI
+```bash
+npm install -g vercel
+vercel
+```
+
+### Option 2: Deploy via GitHub
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy!
+
+### Environment Variables for Vercel
+Add these in your Vercel project settings:
+- `NEXT_PUBLIC_POSTHOG_KEY`
+- `NEXT_PUBLIC_POSTHOG_HOST`
+- `OPENAI_API_KEY`
+
+## 📊 PostHog Integration
+
+This tool integrates with PostHog to provide:
+- **User Behavior Tracking**: Track how users interact with the analysis tool
+- **Conversion Analytics**: Monitor analysis completion rates
+- **Performance Insights**: Track analysis performance and errors
+- **A/B Testing**: Test different analysis approaches
+
+### PostHog Events Tracked
+- `analysis_started`: When a user starts an analysis
+- `analysis_completed`: When analysis finishes successfully
+- `analysis_error`: When analysis encounters errors
+- `page_view`: Standard page view tracking
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, Radix UI
+- **Analytics**: PostHog
+- **AI**: OpenAI GPT-4
+- **Deployment**: Vercel
+- **Web Scraping**: Cheerio, Axios
 
 ## 📁 Project Structure
 
 ```
-cro-ux-analysis-bot/
-├── streamlit_app.py        # Streamlit web interface
-├── cro_bot.py              # Core bot functionality
-├── requirements.txt        # Python dependencies
-├── README.md              # This file
-├── LICENSE                # MIT License
-├── .gitignore            # Git ignore file
-├── DEPLOYMENT.md          # Streamlit deployment guide
-├── .streamlit/
-│   └── config.toml       # Streamlit configuration
-├── example_output/       # Sample reports
-│   ├── sample_report.pdf
-│   └── sample_analysis.json
-└── Reports/              # Generated reports (created automatically)
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── analyze/           # Analysis page
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Homepage
+├── components/            # React components
+│   ├── providers/         # Context providers
+│   └── ui/               # UI components
+├── hooks/                # Custom React hooks
+├── lib/                  # Utility functions
+└── types/                # TypeScript types
 ```
+
+## 🔧 Configuration
+
+### Customizing Analysis Questions
+Edit the questions in `src/app/api/analyze/route.ts`:
+- `CRO_QUESTIONS`: CRO analysis questions
+- `UX_QUESTIONS`: UX analysis questions
+
+### Styling
+The app uses Tailwind CSS with a custom design system. Modify `tailwind.config.js` for theme changes.
+
+### Analytics
+PostHog tracking can be customized in:
+- `src/components/providers/posthog-provider.tsx`
+- `src/app/api/analyze/route.ts`
+
+## 📈 Usage
+
+1. **Enter URL**: Input any website URL
+2. **Run Analysis**: Click "Analyze" to start
+3. **View Results**: Get comprehensive CRO/UX analysis
+4. **Download Report**: Export results as PDF
+5. **Track Progress**: Monitor improvements over time
 
 ## 🤝 Contributing
 
@@ -184,51 +165,22 @@ cro-ux-analysis-bot/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ⚠️ Important Notes
+## 🆘 Support
 
-- **API Costs**: This tool uses OpenAI's GPT-4 API. Ensure you have sufficient credits in your OpenAI account.
-- **Rate Limits**: Be mindful of API rate limits when analyzing multiple pages.
-- **Website Access**: Some websites may block automated requests. Use Playwright for JavaScript-heavy sites.
+- **Issues**: Create an issue on GitHub
+- **Documentation**: Check the code comments and this README
+- **PostHog**: Visit [posthog.com](https://posthog.com) for analytics help
 
-## 🆘 Troubleshooting
+## 🔮 Roadmap
 
-### Common Issues
-
-1. **"Insufficient quota" error**
-   - Add billing to your OpenAI account
-   - Check your API key is valid
-
-2. **"Failed to fetch page content"**
-   - Try enabling Playwright for JavaScript rendering
-   - Check if the website is accessible
-
-3. **Small PDF files (3-4 KB)**
-   - Indicates API quota exceeded
-   - Add billing to OpenAI account
-
-### Getting Help
-
-- Check the [Issues](https://github.com/yourusername/cro-ux-analysis-bot/issues) page
-- Create a new issue with detailed error information
-- Include the URL you're trying to analyze and any error messages
-
-## 🎯 Use Cases
-
-- **E-commerce Optimization**: Improve conversion rates on product pages
-- **Lead Generation**: Optimize landing pages for better lead capture
-- **User Experience**: Enhance website usability and accessibility
-- **Marketing Campaigns**: Audit campaign landing pages
-- **Website Redesign**: Pre-redesign analysis and post-launch validation
-
-## 🔮 Future Enhancements
-
-- [x] Web interface (Streamlit)
-- [ ] Batch processing capabilities
-- [ ] Integration with Google Analytics
-- [ ] A/B testing recommendations
+- [ ] User authentication and dashboard
+- [ ] Historical analysis tracking
 - [ ] Competitor analysis
 - [ ] Automated monitoring
+- [ ] Team collaboration features
+- [ ] Advanced PostHog integrations
+- [ ] Mobile app
 
 ---
 
-**Made with ❤️ for better websites**
+**Built with ❤️ for better websites**
