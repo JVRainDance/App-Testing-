@@ -129,13 +129,20 @@ const UX_QUESTIONS = [
 
 async function fetchWebsiteContent(url: string) {
   try {
+    console.log('Fetching website:', url)
     const response = await axios.get(url, {
-      timeout: 10000,
+      timeout: 15000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
       }
     })
     
+    console.log('Website fetched successfully, status:', response.status)
     const html = response.data
     
     // Extract key information using regex
@@ -169,6 +176,16 @@ async function fetchWebsiteContent(url: string) {
     const forms = (html.match(/<form[^>]*>/gi) || []).length
     const buttons = (html.match(/<(button|input[^>]*type=["']submit["'])[^>]*>/gi) || []).length
     
+    console.log('Extracted content:', {
+      title: title.substring(0, 100),
+      description: description.substring(0, 100),
+      headingsCount: headings.length,
+      linksCount: links.length,
+      imagesCount: images.length,
+      forms,
+      buttons
+    })
+    
     return {
       title,
       description,
@@ -180,9 +197,21 @@ async function fetchWebsiteContent(url: string) {
       html: response.data,
       status: response.status
     }
-  } catch (error) {
-    console.error('Error fetching website:', error)
-    throw new Error('Failed to fetch website content')
+  } catch (error: any) {
+    console.error('Error fetching website:', error.message)
+    if (error.code === 'ECONNREFUSED') {
+      throw new Error('Connection refused. The website may be blocking requests or is not accessible.')
+    } else if (error.code === 'ENOTFOUND') {
+      throw new Error('Website not found. Please check the URL and try again.')
+    } else if (error.response?.status === 403) {
+      throw new Error('Access forbidden. The website is blocking automated requests.')
+    } else if (error.response?.status === 404) {
+      throw new Error('Page not found. Please check the URL and try again.')
+    } else if (error.code === 'ETIMEDOUT') {
+      throw new Error('Request timed out. The website may be slow or unresponsive.')
+    } else {
+      throw new Error(`Failed to fetch website content: ${error.message}`)
+    }
   }
 }
 
@@ -251,15 +280,37 @@ Respond in JSON format:
       }
       throw new Error('Invalid AI response format')
     }
-  } catch (error) {
-    console.error('AI analysis error:', error)
-    // Return fallback analysis
+  } catch (error: any) {
+    console.error('AI analysis error:', error.message)
+    
+    // Provide more specific error messages
+    let errorMessage = 'Unable to analyze due to technical issues'
+    let recommendation = 'Please review manually'
+    
+    if (error.message?.includes('rate limit')) {
+      errorMessage = 'OpenAI rate limit exceeded. Please try again in a few minutes.'
+      recommendation = 'Wait a few minutes and try again, or upgrade your OpenAI plan.'
+    } else if (error.message?.includes('quota')) {
+      errorMessage = 'OpenAI quota exceeded. Please check your API usage.'
+      recommendation = 'Check your OpenAI account usage and billing status.'
+    } else if (error.message?.includes('invalid api key')) {
+      errorMessage = 'Invalid OpenAI API key. Please check your configuration.'
+      recommendation = 'Verify your OpenAI API key in the environment variables.'
+    } else if (error.message?.includes('timeout')) {
+      errorMessage = 'AI analysis timed out. The request took too long to process.'
+      recommendation = 'Try analyzing a smaller website or try again later.'
+    } else if (error.message?.includes('Invalid AI response format')) {
+      errorMessage = 'AI response format error. The analysis could not be parsed.'
+      recommendation = 'Try again, or contact support if the issue persists.'
+    }
+    
+    // Return fallback analysis with specific error message
     return {
       questions: questions.map((q: any) => ({
         question: q,
         answer: 'needs_work',
-        evidence: 'Unable to analyze due to technical issues',
-        recommendation: 'Please review manually',
+        evidence: errorMessage,
+        recommendation: recommendation,
         priority: 'medium'
       }))
     }
@@ -366,28 +417,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch website content
+    console.log('Starting website content fetch...')
     const content = await fetchWebsiteContent(url)
+    console.log('Website content fetched successfully')
     
     // Analyze CRO
+    console.log('Starting CRO analysis...')
     const croResults: any[] = []
     for (const category of CRO_QUESTIONS) {
+      console.log(`Analyzing CRO category: ${category.category}`)
       const analysis = await analyzeWithAI(content, category.questions, category.category)
       croResults.push({
         category: category.category,
         questions: analysis.questions,
         score: Math.round((calculateScore(analysis.questions) / category.questions.length) * 100)
       })
+      console.log(`Completed CRO category: ${category.category}`)
     }
     
     // Analyze UX
+    console.log('Starting UX analysis...')
     const uxResults: any[] = []
     for (const category of UX_QUESTIONS) {
+      console.log(`Analyzing UX category: ${category.category}`)
       const analysis = await analyzeWithAI(content, category.questions, category.category)
       uxResults.push({
         category: category.category,
         questions: analysis.questions,
         score: Math.round((calculateScore(analysis.questions) / category.questions.length) * 100)
       })
+      console.log(`Completed UX category: ${category.category}`)
     }
     
     // Calculate scores
