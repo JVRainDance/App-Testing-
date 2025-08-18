@@ -12,7 +12,6 @@ if (typeof window !== 'undefined') {
     autocapture: true,
     disable_session_recording: false,
     enable_recording_console_log: true,
-    record_network_payloads: true,
   })
 }
 
