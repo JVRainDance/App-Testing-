@@ -8,8 +8,8 @@ const openai = new OpenAI({
 })
 
 // PostHog configuration
-const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY
-const POSTHOG_HOST = process.env.POSTHOG_HOST || 'https://us.i.posthog.com'
+const POSTHOG_API_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 
 // CRO Audit Questions
 const CRO_QUESTIONS = [
@@ -145,26 +145,26 @@ async function fetchWebsiteContent(url: string) {
     const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
     const description = descMatch ? descMatch[1] : ''
     
-    const headings = []
+    const headings: string[] = []
     const h1Matches = html.match(/<h1[^>]*>([^<]+)<\/h1>/gi) || []
     const h2Matches = html.match(/<h2[^>]*>([^<]+)<\/h2>/gi) || []
     const h3Matches = html.match(/<h3[^>]*>([^<]+)<\/h3>/gi) || []
     
-    headings.push(...h1Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
-    headings.push(...h2Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
-    headings.push(...h3Matches.map(h => h.replace(/<[^>]*>/g, '').trim()))
+    headings.push(...h1Matches.map((h: string) => h.replace(/<[^>]*>/g, '').trim()))
+    headings.push(...h2Matches.map((h: string) => h.replace(/<[^>]*>/g, '').trim()))
+    headings.push(...h3Matches.map((h: string) => h.replace(/<[^>]*>/g, '').trim()))
     
     const linkMatches = html.match(/<a[^>]*href=["']([^"']+)["'][^>]*>/gi) || []
-    const links = linkMatches.map(link => {
+    const links = linkMatches.map((link: string) => {
       const hrefMatch = link.match(/href=["']([^"']+)["']/i)
       return hrefMatch ? hrefMatch[1] : ''
-    }).filter(link => link)
+    }).filter((link: string) => link)
     
     const imgMatches = html.match(/<img[^>]*alt=["']([^"']+)["'][^>]*>/gi) || []
-    const images = imgMatches.map(img => {
+    const images = imgMatches.map((img: string) => {
       const altMatch = img.match(/alt=["']([^"']+)["']/i)
       return altMatch ? altMatch[1] : ''
-    }).filter(alt => alt)
+    }).filter((alt: string) => alt)
     
     const forms = (html.match(/<form[^>]*>/gi) || []).length
     const buttons = (html.match(/<(button|input[^>]*type=["']submit["'])[^>]*>/gi) || []).length
