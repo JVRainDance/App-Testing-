@@ -267,7 +267,7 @@ Respond in JSON format:
 }
 
 function calculateScore(questions: any[]) {
-  const scores: number[] = questions.map(q => {
+  const scores: number[] = questions.map((q: any) => {
     switch (q.answer) {
       case 'yes': return 1
       case 'needs_work': return 0.5
@@ -288,7 +288,7 @@ function calculateOverallGrade(croScore: number, uxScore: number) {
 }
 
 function generateRecommendations(croAnalysis: any[], uxAnalysis: any[]) {
-  const recommendations = []
+  const recommendations: any[] = []
   
   // High priority recommendations
   const highPriority = [...croAnalysis, ...uxAnalysis]
@@ -362,7 +362,7 @@ export async function POST(request: NextRequest) {
     const content = await fetchWebsiteContent(url)
     
     // Analyze CRO
-    const croResults = []
+    const croResults: any[] = []
     for (const category of CRO_QUESTIONS) {
       const analysis = await analyzeWithAI(content, category.questions, category.category)
       croResults.push({
@@ -373,7 +373,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Analyze UX
-    const uxResults = []
+    const uxResults: any[] = []
     for (const category of UX_QUESTIONS) {
       const analysis = await analyzeWithAI(content, category.questions, category.category)
       uxResults.push({
