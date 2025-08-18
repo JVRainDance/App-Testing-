@@ -12,7 +12,7 @@ if (typeof window !== 'undefined') {
     autocapture: true,
     disable_session_recording: false,
     enable_recording_console_log: true,
-    enable_recording_network_payloads: true,
+    record_network_payloads: true,
   })
 }
 
