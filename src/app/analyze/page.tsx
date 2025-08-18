@@ -29,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
-import { PostHog } from 'posthog-js/react'
+import posthog from 'posthog-js'
 import { useRouter } from 'next/navigation'
 
 interface AnalysisResult {
@@ -107,7 +107,7 @@ export default function AnalyzePage() {
     setAnalysisResult(null)
 
     // Track the analysis event
-    PostHog.capture('analysis_started', {
+    posthog.capture('analysis_started', {
       url: urlToAnalyze,
       analysis_type: 'full_audit'
     })
@@ -145,7 +145,7 @@ export default function AnalyzePage() {
       setAnalysisResult(result)
 
       // Track successful analysis
-      PostHog.capture('analysis_completed', {
+      posthog.capture('analysis_completed', {
         url: urlToAnalyze,
         cro_score: result.croScore,
         ux_score: result.uxScore,

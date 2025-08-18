@@ -1,11 +1,11 @@
 'use client'
 
-import { PostHog } from 'posthog-js/react'
+import posthog from 'posthog-js'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 if (typeof window !== 'undefined') {
-  PostHog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
     capture_pageview: false, // We'll handle this manually
     capture_pageleave: true,
@@ -31,7 +31,7 @@ export function PostHogProvider({
         url = url + `?${searchParams.toString()}`
       }
       
-      PostHog.capture('$pageview', {
+      posthog.capture('$pageview', {
         $current_url: url,
       })
     }

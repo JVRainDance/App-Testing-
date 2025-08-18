@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
-import { PostHog } from 'posthog-js/react'
+import posthog from 'posthog-js'
 
 export default function HomePage() {
   const [url, setUrl] = useState('')
@@ -35,7 +35,7 @@ export default function HomePage() {
     setIsAnalyzing(true)
     
     // Track the analysis event
-    PostHog.capture('analysis_started', {
+    posthog.capture('analysis_started', {
       url: url,
       analysis_type: 'full_audit'
     })
