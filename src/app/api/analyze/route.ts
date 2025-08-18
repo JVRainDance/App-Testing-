@@ -204,7 +204,7 @@ Please analyze each question and provide:
 4. Priority: "high", "medium", or "low"
 
 Questions to analyze:
-${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+${questions.map((q: any, i: number) => `${i + 1}. ${q}`).join('\n')}
 
 Respond in JSON format:
 {
@@ -255,7 +255,7 @@ Respond in JSON format:
     console.error('AI analysis error:', error)
     // Return fallback analysis
     return {
-      questions: questions.map(q => ({
+      questions: questions.map((q: any) => ({
         question: q,
         answer: 'needs_work',
         evidence: 'Unable to analyze due to technical issues',
@@ -267,7 +267,7 @@ Respond in JSON format:
 }
 
 function calculateScore(questions: any[]) {
-  const scores = questions.map(q => {
+  const scores: number[] = questions.map(q => {
     switch (q.answer) {
       case 'yes': return 1
       case 'needs_work': return 0.5
@@ -275,7 +275,7 @@ function calculateScore(questions: any[]) {
       default: return 0
     }
   })
-  return scores.reduce((sum, score) => sum + score, 0)
+  return scores.reduce((sum: number, score: number) => sum + score, 0)
 }
 
 function calculateOverallGrade(croScore: number, uxScore: number) {
@@ -292,35 +292,35 @@ function generateRecommendations(croAnalysis: any[], uxAnalysis: any[]) {
   
   // High priority recommendations
   const highPriority = [...croAnalysis, ...uxAnalysis]
-    .flatMap(cat => cat.questions)
+    .flatMap((cat: any) => cat.questions)
     .filter((q: any) => q.priority === 'high' && q.answer !== 'yes')
     .slice(0, 5)
   
-  highPriority.forEach(q => {
+  highPriority.forEach((q: any) => {
     recommendations.push({
       title: `Fix: ${q.question}`,
       description: q.recommendation,
       priority: 'high' as const,
       impact: 'High',
       effort: 'Medium',
-      category: croAnalysis.some(cat => cat.questions.includes(q)) ? 'cro' as const : 'ux' as const
+      category: croAnalysis.some((cat: any) => cat.questions.includes(q)) ? 'cro' as const : 'ux' as const
     })
   })
   
   // Medium priority recommendations
   const mediumPriority = [...croAnalysis, ...uxAnalysis]
-    .flatMap(cat => cat.questions)
+    .flatMap((cat: any) => cat.questions)
     .filter((q: any) => q.priority === 'medium' && q.answer !== 'yes')
     .slice(0, 3)
   
-  mediumPriority.forEach(q => {
+  mediumPriority.forEach((q: any) => {
     recommendations.push({
       title: `Improve: ${q.question}`,
       description: q.recommendation,
       priority: 'medium' as const,
       impact: 'Medium',
       effort: 'Low',
-      category: croAnalysis.some(cat => cat.questions.includes(q)) ? 'cro' as const : 'ux' as const
+      category: croAnalysis.some((cat: any) => cat.questions.includes(q)) ? 'cro' as const : 'ux' as const
     })
   })
   
@@ -384,8 +384,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Calculate scores
-    const croScore = Math.round(calculateScore(croResults.flatMap(cat => cat.questions)))
-    const uxScore = Math.round(calculateScore(uxResults.flatMap(cat => cat.questions)))
+    const croScore = Math.round(calculateScore(croResults.flatMap((cat: any) => cat.questions)))
+    const uxScore = Math.round(calculateScore(uxResults.flatMap((cat: any) => cat.questions)))
     const overallGrade = calculateOverallGrade(croScore, uxScore)
     
     // Generate recommendations
