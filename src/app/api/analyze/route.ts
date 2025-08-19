@@ -256,6 +256,10 @@ Respond in JSON format:
       return performFallbackAnalysis(content, questions, category)
     }
 
+    console.log('Starting AI analysis with OpenAI...')
+    console.log('OpenAI API Key exists:', !!process.env.OPENAI_API_KEY)
+    console.log('Content to analyze:', { title: content.title, forms: content.forms, buttons: content.buttons })
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -289,6 +293,9 @@ Respond in JSON format:
     }
   } catch (error: any) {
     console.error('AI analysis error:', error.message)
+    console.error('Full error details:', error)
+    console.error('Error type:', typeof error)
+    console.error('Error stack:', error.stack)
     
     // Provide more specific error messages
     let errorMessage = 'Unable to analyze due to technical issues'
@@ -326,7 +333,10 @@ Respond in JSON format:
 
 // Add fallback analysis function
 function performFallbackAnalysis(content: any, questions: any[], category: string) {
-  console.log('Performing fallback analysis for category:', category)
+  console.log('=== FALLBACK ANALYSIS TRIGGERED ===')
+  console.log('Category:', category)
+  console.log('Reason: OpenAI API key missing or AI analysis failed')
+  console.log('Content available:', { title: content.title, forms: content.forms, buttons: content.buttons })
   
   const analysis = questions.map((question: string) => {
     let answer = 'needs_work'
