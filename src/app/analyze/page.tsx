@@ -557,10 +557,10 @@ export default function AnalyzePage() {
                                 const data = await response.json()
                                 addDebugLog(`Test GET response: ${JSON.stringify(data)}`)
                                 setRawApiResponse(data)
-                              } catch (error) {
-                                addDebugLog(`Test GET error: ${error}`)
-                                setApiError(error.toString())
-                              }
+                                                             } catch (error) {
+                                 addDebugLog(`Test GET error: ${error}`)
+                                 setApiError(error instanceof Error ? error.message : String(error))
+                               }
                             }}
                           >
                             Test GET /api/test
@@ -579,10 +579,10 @@ export default function AnalyzePage() {
                                 const data = await response.json()
                                 addDebugLog(`Test POST response: ${JSON.stringify(data)}`)
                                 setRawApiResponse(data)
-                              } catch (error) {
-                                addDebugLog(`Test POST error: ${error}`)
-                                setApiError(error.toString())
-                              }
+                                                             } catch (error) {
+                                 addDebugLog(`Test POST error: ${error}`)
+                                 setApiError(error instanceof Error ? error.message : String(error))
+                               }
                             }}
                           >
                             Test POST /api/test
