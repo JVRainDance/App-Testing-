@@ -1,285 +1,299 @@
-# Deployment Guide - CRO-UX Analysis Tool v2.0
+# Deployment Guide
 
-This guide will help you deploy your CRO-UX Analysis Tool to Vercel with PostHog integration.
+This guide will help you deploy the CRO-UX Analysis Tool to production.
 
-## 🚀 Quick Deploy to Vercel
+## Prerequisites
 
-### Option 1: Deploy with Vercel CLI (Recommended)
+- Node.js 18+ installed
+- Git repository set up
+- OpenAI API account and key
+- PostHog account (optional)
 
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login to Vercel**
-   ```bash
-   vercel login
-   ```
-
-3. **Deploy from your project directory**
-   ```bash
-   cd cro-ux-analysis-tool
-   vercel
-   ```
-
-4. **Follow the prompts**:
-   - Set up and deploy: `Y`
-   - Which scope: Select your account
-   - Link to existing project: `N`
-   - Project name: `cro-ux-analysis-tool` (or your preferred name)
-   - Directory: `./` (current directory)
-   - Override settings: `N`
-
-5. **Add Environment Variables**
-   ```bash
-   vercel env add NEXT_PUBLIC_POSTHOG_KEY
-   vercel env add NEXT_PUBLIC_POSTHOG_HOST
-   vercel env add OPENAI_API_KEY
-   ```
-
-### Option 2: Deploy via GitHub
-
-1. **Push your code to GitHub**
-   ```bash
-   git add .
-   git commit -m "Initial commit"
-   git push origin main
-   ```
-
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your GitHub repository
-   - Select the repository
-
-3. **Configure Environment Variables**
-   In the Vercel dashboard:
-   - Go to Project Settings → Environment Variables
-   - Add the following variables:
-     - `NEXT_PUBLIC_POSTHOG_KEY`: Your PostHog API key
-     - `NEXT_PUBLIC_POSTHOG_HOST`: `https://us.i.posthog.com`
-     - `OPENAI_API_KEY`: Your OpenAI API key
-
-4. **Deploy**
-   - Click "Deploy"
-   - Vercel will automatically build and deploy your app
-
-## 🔧 Environment Variables Setup
+## Environment Variables
 
 ### Required Variables
 
-Create a `.env.local` file in your project root:
+**OPENAI_API_KEY** (Required for AI analysis)
+- Sign up at [OpenAI Platform](https://platform.openai.com/)
+- Create an API key in your dashboard
+- Ensure you have sufficient credits for GPT-4 usage
 
-```env
-# PostHog Configuration
-NEXT_PUBLIC_POSTHOG_KEY=phc_XhPqbGDv2AvcD9i57LqHBoFcl9jcOJV1zMdWd5YMIkv
-NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+### Optional Variables
 
-# OpenAI Configuration
-OPENAI_API_KEY=your-openai-api-key-here
+**NEXT_PUBLIC_POSTHOG_KEY** (Optional for analytics)
+- Sign up at [PostHog](https://posthog.com/)
+- Get your project API key from the project settings
+
+**NEXT_PUBLIC_POSTHOG_HOST** (Optional)
+- Default: `https://us.i.posthog.com`
+- Change if using a different PostHog instance
+
+## Deployment Options
+
+### 1. Vercel (Recommended)
+
+Vercel provides the easiest deployment experience for Next.js applications.
+
+#### Step 1: Prepare Your Repository
+```bash
+# Ensure your code is pushed to GitHub
+git add .
+git commit -m "Prepare for deployment"
+git push origin main
 ```
 
-### Getting Your API Keys
+#### Step 2: Deploy to Vercel
+1. Go to [vercel.com](https://vercel.com)
+2. Sign up/Login with your GitHub account
+3. Click "New Project"
+4. Import your repository
+5. Configure environment variables:
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `NEXT_PUBLIC_POSTHOG_KEY`: Your PostHog key (optional)
+   - `NEXT_PUBLIC_POSTHOG_HOST`: PostHog host (optional)
+6. Click "Deploy"
 
-#### PostHog API Key
-1. Go to [posthog.com](https://posthog.com)
-2. Sign up for a free account
-3. Create a new project
-4. Go to Project Settings → API Keys
-5. Copy your API key
+#### Step 3: Verify Deployment
+- Check that the build completes successfully
+- Test the analysis functionality
+- Verify PDF generation works
 
-#### OpenAI API Key
-1. Go to [platform.openai.com](https://platform.openai.com)
-2. Sign in to your account
-3. Go to API Keys
-4. Create a new API key
-5. Copy the key (keep it secure!)
+### 2. Netlify
 
-## 🌐 Domain Configuration
+#### Step 1: Build Configuration
+Create a `netlify.toml` file in your project root:
+```toml
+[build]
+  command = "npm run build"
+  publish = ".next"
 
-### Custom Domain (Optional)
-1. In Vercel dashboard, go to Settings → Domains
-2. Add your custom domain
-3. Follow the DNS configuration instructions
-4. Wait for DNS propagation (up to 24 hours)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
 
-### Subdomain (Optional)
-You can also use a Vercel subdomain:
-- Your app will be available at: `your-project.vercel.app`
-- You can customize this in Project Settings → Domains
+#### Step 2: Deploy
+1. Go to [netlify.com](https://netlify.com)
+2. Connect your GitHub repository
+3. Set build command: `npm run build`
+4. Set publish directory: `.next`
+5. Add environment variables in the Netlify dashboard
+6. Deploy
 
-## 📊 PostHog Setup
+### 3. Railway
 
-### 1. Create PostHog Project
-1. Go to [posthog.com](https://posthog.com)
-2. Create a new project
-3. Note your API key and host URL
+#### Step 1: Prepare for Railway
+Create a `railway.json` file:
+```json
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
+```
 
-### 2. Configure Tracking
-The app automatically tracks:
-- Page views
-- Analysis starts
-- Analysis completions
-- Errors
+#### Step 2: Deploy
+1. Go to [railway.app](https://railway.app)
+2. Connect your GitHub repository
+3. Add environment variables
+4. Deploy
 
-### 3. View Analytics
-1. Go to your PostHog dashboard
-2. Check Events for tracking data
-3. Create funnels to track conversion rates
-4. Set up session recordings
+### 4. Docker Deployment
 
-## 🔍 Testing Your Deployment
+#### Step 1: Create Dockerfile
+```dockerfile
+FROM node:18-alpine
 
-### 1. Test the Homepage
-- Visit your deployed URL
-- Verify the homepage loads correctly
-- Check that PostHog tracking is working
+WORKDIR /app
 
-### 2. Test Analysis
-- Enter a test URL (e.g., `https://example.com`)
-- Run an analysis
-- Verify results are displayed correctly
+COPY package*.json ./
+RUN npm ci --only=production
 
-### 3. Check API Endpoints
-- Test the `/api/analyze` endpoint
-- Verify error handling works
+COPY . .
+RUN npm run build
 
-## 🛠️ Troubleshooting
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+#### Step 2: Build and Run
+```bash
+docker build -t cro-ux-analysis .
+docker run -p 3000:3000 \
+  -e OPENAI_API_KEY=your-key \
+  -e NEXT_PUBLIC_POSTHOG_KEY=your-key \
+  cro-ux-analysis
+```
+
+## Environment Variable Setup
+
+### Local Development
+Create a `.env.local` file:
+```env
+# Required for AI analysis
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Optional for analytics
+NEXT_PUBLIC_POSTHOG_KEY=phc-your-posthog-key-here
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+### Production Deployment
+Add these variables in your deployment platform's dashboard:
+
+**Vercel:**
+- Go to Project Settings → Environment Variables
+- Add each variable with the appropriate scope (Production, Preview, Development)
+
+**Netlify:**
+- Go to Site Settings → Environment Variables
+- Add each variable
+
+**Railway:**
+- Go to your project → Variables
+- Add each variable
+
+## Troubleshooting Deployment
 
 ### Common Issues
 
-#### Build Errors
+**1. Build Failures**
 ```bash
-# Check build logs
-vercel logs
+# Check for TypeScript errors
+npm run type-check
 
-# Rebuild locally
-npm run build
+# Check for linting errors
+npm run lint
+
+# Ensure all dependencies are installed
+npm install
 ```
 
-#### Environment Variables Not Working
-```bash
-# Check environment variables
-vercel env ls
+**2. Environment Variables Not Working**
+- Verify variable names are correct (case-sensitive)
+- Check that variables are set for the correct environment
+- Restart the deployment after adding variables
 
-# Redeploy with new env vars
-vercel --prod
-```
+**3. OpenAI API Errors**
+- Verify your API key is valid
+- Check your OpenAI account has sufficient credits
+- Ensure the key has access to GPT-4
 
-#### PostHog Not Tracking
-1. Check browser console for errors
-2. Verify API key is correct
-3. Check PostHog dashboard for events
-
-#### OpenAI API Errors
-1. Verify API key is valid
-2. Check OpenAI account has credits
-3. Verify API key has GPT-4 access
+**4. PDF Generation Issues**
+- Verify jsPDF is properly installed
+- Check browser console for errors
+- Test in different browsers
 
 ### Performance Optimization
 
-#### Vercel Function Limits
-- Function timeout: 60 seconds (configured in `vercel.json`)
-- Memory: 1024MB
-- Payload size: 4.5MB
+**1. Enable Caching**
+Add to your `next.config.js`:
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    optimizeCss: true,
+  },
+  compress: true,
+  poweredByHeader: false,
+}
 
-#### Optimization Tips
-1. **Caching**: Implement Redis caching for repeated analyses
-2. **CDN**: Vercel automatically provides CDN
-3. **Image Optimization**: Use Next.js Image component
-4. **Bundle Size**: Monitor with `npm run build`
-
-## 🔒 Security Considerations
-
-### API Key Security
-- Never commit API keys to Git
-- Use environment variables
-- Rotate keys regularly
-- Monitor usage
-
-### Rate Limiting
-- Implement rate limiting for API endpoints
-- Monitor for abuse
-- Set up alerts for unusual activity
-
-### CORS Configuration
-- Configure CORS in `next.config.js`
-- Restrict to trusted domains
-- Monitor for unauthorized requests
-
-## 📈 Monitoring & Analytics
-
-### Vercel Analytics
-- Function execution times
-- Error rates
-- Performance metrics
-
-### PostHog Analytics
-- User behavior
-- Conversion funnels
-- Session recordings
-- A/B testing
-
-### Custom Monitoring
-- Set up alerts for errors
-- Monitor API usage
-- Track performance metrics
-
-## 🔄 Continuous Deployment
-
-### GitHub Integration
-1. Connect your GitHub repository to Vercel
-2. Enable automatic deployments
-3. Set up branch protection rules
-
-### Environment Management
-```bash
-# Deploy to preview
-vercel
-
-# Deploy to production
-vercel --prod
-
-# Promote preview to production
-vercel --prod
+module.exports = nextConfig
 ```
 
-## 📱 Mobile Optimization
+**2. Optimize Images**
+- Use Next.js Image component
+- Compress images before upload
+- Consider using a CDN
 
-The app is already mobile-responsive, but verify:
-1. Test on various screen sizes
-2. Check touch targets
-3. Verify navigation works on mobile
-4. Test analysis flow on mobile devices
+**3. Monitor Performance**
+- Use PostHog analytics to track performance
+- Monitor API response times
+- Set up error tracking
 
-## 🎯 Production Checklist
+## Security Considerations
 
-- [ ] Environment variables configured
-- [ ] PostHog tracking working
-- [ ] OpenAI API key valid
-- [ ] Custom domain configured (optional)
-- [ ] SSL certificate active
-- [ ] Error monitoring set up
-- [ ] Performance optimized
-- [ ] Mobile responsive
-- [ ] Analytics tracking
-- [ ] Backup strategy in place
+### API Key Security
+- Never commit API keys to version control
+- Use environment variables for all sensitive data
+- Rotate API keys regularly
+- Monitor API usage for unusual activity
 
-## 🆘 Support
+### CORS Configuration
+The application handles CORS automatically, but you may need to configure it for your domain:
+```javascript
+// In next.config.js
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' },
+        ],
+      },
+    ]
+  },
+}
+```
 
-### Vercel Support
-- [Vercel Documentation](https://vercel.com/docs)
-- [Vercel Community](https://github.com/vercel/vercel/discussions)
+## Monitoring and Maintenance
 
-### PostHog Support
-- [PostHog Documentation](https://posthog.com/docs)
-- [PostHog Community](https://posthog.com/slack)
+### Health Checks
+Set up health check endpoints:
+```javascript
+// pages/api/health.js
+export default function handler(req, res) {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
+}
+```
 
-### General Support
-- Create an issue on GitHub
-- Check the troubleshooting section above
-- Review the main README.md
+### Error Tracking
+- Use PostHog for error tracking
+- Set up alerts for critical errors
+- Monitor API rate limits
 
----
+### Regular Updates
+- Keep dependencies updated
+- Monitor security advisories
+- Test updates in staging environment
 
-**Happy Deploying! 🚀**
+## Support
+
+If you encounter deployment issues:
+1. Check the troubleshooting section above
+2. Review the deployment platform's documentation
+3. Check the application logs
+4. Create an issue on GitHub with detailed information
+
+## Cost Considerations
+
+### OpenAI API Costs
+- GPT-4 is more expensive than GPT-3.5
+- Monitor usage to avoid unexpected charges
+- Consider implementing rate limiting
+- Set up billing alerts
+
+### Hosting Costs
+- Vercel: Free tier available, paid plans start at $20/month
+- Netlify: Free tier available, paid plans start at $19/month
+- Railway: Pay-as-you-go pricing
+- Docker: Depends on your hosting provider
+
+## Best Practices
+
+1. **Environment Separation**: Use different API keys for development and production
+2. **Monitoring**: Set up comprehensive monitoring and alerting
+3. **Backup**: Regularly backup your configuration and data
+4. **Testing**: Test deployments in staging environment first
+5. **Documentation**: Keep deployment documentation updated
+6. **Security**: Regularly review and update security measures

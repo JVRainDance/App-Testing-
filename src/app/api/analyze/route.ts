@@ -250,6 +250,12 @@ Respond in JSON format:
 `
 
   try {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('OpenAI API key not configured, using fallback analysis')
+      return performFallbackAnalysis(content, questions, category)
+    }
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -273,6 +279,7 @@ Respond in JSON format:
     try {
       return JSON.parse(response)
     } catch (parseError) {
+      console.error('JSON parsing error:', parseError)
       // If JSON parsing fails, try to extract JSON from the response
       const jsonMatch = response.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
@@ -315,6 +322,152 @@ Respond in JSON format:
       }))
     }
   }
+}
+
+// Add fallback analysis function
+function performFallbackAnalysis(content: any, questions: any[], category: string) {
+  console.log('Performing fallback analysis for category:', category)
+  
+  const analysis = questions.map((question: string) => {
+    let answer = 'needs_work'
+    let evidence = 'Basic analysis based on available content'
+    let recommendation = 'Review this aspect manually for detailed insights'
+    let priority = 'medium'
+
+    // Basic heuristic analysis based on content
+    const lowerQuestion = question.toLowerCase()
+    const lowerTitle = content.title.toLowerCase()
+    const lowerDescription = content.description.toLowerCase()
+    const headings = content.headings.map((h: string) => h.toLowerCase())
+    const hasForms = content.forms > 0
+    const hasButtons = content.buttons > 0
+    const hasImages = content.images.length > 0
+
+    if (lowerQuestion.includes('value proposition') || lowerQuestion.includes('clear')) {
+      if (content.title && content.description) {
+        answer = 'yes'
+        evidence = 'Website has a title and description'
+        recommendation = 'Ensure your value proposition is prominently displayed above the fold'
+      }
+    } else if (lowerQuestion.includes('call-to-action') || lowerQuestion.includes('cta')) {
+      if (hasButtons) {
+        answer = 'yes'
+        evidence = `Found ${content.buttons} buttons/CTAs on the page`
+        recommendation = 'Ensure CTAs are clear, prominent, and action-oriented'
+      } else {
+        answer = 'no'
+        evidence = 'No buttons or CTAs detected'
+        recommendation = 'Add clear call-to-action buttons to guide user behavior'
+        priority = 'high'
+      }
+    } else if (lowerQuestion.includes('testimonial') || lowerQuestion.includes('review')) {
+      const hasSocialProof = headings.some((h: string) => 
+        h.includes('testimonial') || h.includes('review') || h.includes('customer')
+      )
+      if (hasSocialProof) {
+        answer = 'yes'
+        evidence = 'Found potential social proof content in headings'
+        recommendation = 'Ensure testimonials are prominently displayed and credible'
+      } else {
+        answer = 'no'
+        evidence = 'No testimonials or reviews detected'
+        recommendation = 'Add customer testimonials and reviews to build trust'
+        priority = 'medium'
+      }
+    } else if (lowerQuestion.includes('form') || lowerQuestion.includes('lead capture')) {
+      if (hasForms) {
+        answer = 'yes'
+        evidence = `Found ${content.forms} forms on the page`
+        recommendation = 'Optimize forms for conversion with minimal fields and clear labels'
+      } else {
+        answer = 'no'
+        evidence = 'No forms detected'
+        recommendation = 'Add lead capture forms to collect visitor information'
+        priority = 'high'
+      }
+    } else if (lowerQuestion.includes('mobile') || lowerQuestion.includes('responsive')) {
+      answer = 'needs_work'
+      evidence = 'Mobile responsiveness requires manual testing'
+      recommendation = 'Test website on various mobile devices and screen sizes'
+    } else if (lowerQuestion.includes('speed') || lowerQuestion.includes('load')) {
+      answer = 'needs_work'
+      evidence = 'Page speed requires performance testing tools'
+      recommendation = 'Use tools like Google PageSpeed Insights to measure and optimize loading speed'
+    } else if (lowerQuestion.includes('accessibility') || lowerQuestion.includes('alt text')) {
+      const imagesWithAlt = content.images.filter((img: string) => img).length
+      const totalImages = content.images.length
+      if (totalImages > 0) {
+        if (imagesWithAlt === totalImages) {
+          answer = 'yes'
+          evidence = `All ${totalImages} images have alt text`
+          recommendation = 'Maintain accessibility standards for all new images'
+        } else {
+          answer = 'needs_work'
+          evidence = `${imagesWithAlt}/${totalImages} images have alt text`
+          recommendation = 'Add alt text to all images for better accessibility'
+          priority = 'medium'
+        }
+      } else {
+        answer = 'needs_work'
+        evidence = 'No images detected to analyze'
+        recommendation = 'Ensure all images have descriptive alt text when added'
+      }
+    } else if (lowerQuestion.includes('navigation') || lowerQuestion.includes('hierarchy')) {
+      if (headings.length > 0) {
+        answer = 'yes'
+        evidence = `Found ${headings.length} headings indicating content structure`
+        recommendation = 'Ensure navigation follows logical information hierarchy'
+      } else {
+        answer = 'needs_work'
+        evidence = 'Limited heading structure detected'
+        recommendation = 'Improve content structure with proper heading hierarchy'
+      }
+    } else if (lowerQuestion.includes('tracking') || lowerQuestion.includes('analytics')) {
+      answer = 'needs_work'
+      evidence = 'Analytics setup requires manual verification'
+      recommendation = 'Verify Google Analytics or other tracking tools are properly configured'
+    } else if (lowerQuestion.includes('a/b testing') || lowerQuestion.includes('experiment')) {
+      answer = 'needs_work'
+      evidence = 'A/B testing setup requires manual verification'
+      recommendation = 'Consider implementing A/B testing tools like Optimizely or Google Optimize'
+    } else if (lowerQuestion.includes('urgency') || lowerQuestion.includes('scarcity')) {
+      const hasUrgency = headings.some((h: string) => 
+        h.includes('limited') || h.includes('offer') || h.includes('sale') || h.includes('time')
+      )
+      if (hasUrgency) {
+        answer = 'yes'
+        evidence = 'Found potential urgency/scarcity elements in content'
+        recommendation = 'Ensure urgency elements are genuine and not misleading'
+      } else {
+        answer = 'no'
+        evidence = 'No urgency or scarcity elements detected'
+        recommendation = 'Consider adding limited-time offers or scarcity indicators'
+      }
+    } else if (lowerQuestion.includes('pricing') || lowerQuestion.includes('cost')) {
+      const hasPricing = headings.some((h: string) => 
+        h.includes('price') || h.includes('cost') || h.includes('fee') || h.includes('$')
+      )
+      if (hasPricing) {
+        answer = 'yes'
+        evidence = 'Found potential pricing information in content'
+        recommendation = 'Ensure pricing is clear, transparent, and easy to understand'
+      } else {
+        answer = 'needs_work'
+        evidence = 'Pricing information not clearly detected'
+        recommendation = 'Make pricing information clear and accessible to visitors'
+      }
+    }
+
+    return {
+      question,
+      answer,
+      evidence,
+      recommendation,
+      priority
+    }
+  })
+
+  return { questions: analysis }
 }
 
 function calculateScore(questions: any[]) {

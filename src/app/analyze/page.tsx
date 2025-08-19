@@ -31,6 +31,7 @@ import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import posthog from 'posthog-js'
 import { useRouter } from 'next/navigation'
+import jsPDF from 'jspdf'
 
 interface AnalysisResult {
   url: string
@@ -82,6 +83,7 @@ export default function AnalyzePage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('')
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   useEffect(() => {
     const urlParam = searchParams.get('url')
@@ -169,6 +171,198 @@ export default function AnalyzePage() {
       setIsAnalyzing(false)
       setProgress(0)
       setCurrentStep('')
+    }
+  }
+
+  const generatePDF = async () => {
+    if (!analysisResult) return
+
+    setIsGeneratingPDF(true)
+    
+    try {
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const margin = 20
+      const contentWidth = pageWidth - (margin * 2)
+      let yPosition = 20
+
+      // Title
+      doc.setFontSize(24)
+      doc.setFont('helvetica', 'bold')
+      doc.text('CRO & UX Analysis Report', pageWidth / 2, yPosition, { align: 'center' })
+      yPosition += 20
+
+      // Website URL
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Website: ${analysisResult.url}`, margin, yPosition)
+      yPosition += 10
+      doc.text(`Analysis Date: ${new Date(analysisResult.timestamp).toLocaleDateString()}`, margin, yPosition)
+      yPosition += 20
+
+      // Summary Scores
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Summary Scores', margin, yPosition)
+      yPosition += 15
+
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Overall Grade: ${analysisResult.overallGrade}`, margin, yPosition)
+      yPosition += 8
+      doc.text(`CRO Score: ${analysisResult.croScore}/15 (${((analysisResult.croScore / 15) * 100).toFixed(1)}%)`, margin, yPosition)
+      yPosition += 8
+      doc.text(`UX Score: ${analysisResult.uxScore}/18 (${((analysisResult.uxScore / 18) * 100).toFixed(1)}%)`, margin, yPosition)
+      yPosition += 20
+
+      // Recommendations
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Priority Recommendations', margin, yPosition)
+      yPosition += 15
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      
+      analysisResult.recommendations
+        .sort((a: Recommendation, b: Recommendation) => {
+          const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 }
+          return priorityOrder[b.priority] - priorityOrder[a.priority]
+        })
+        .slice(0, 10) // Limit to top 10 recommendations
+        .forEach((rec: Recommendation, index: number) => {
+          if (yPosition > 250) {
+            doc.addPage()
+            yPosition = 20
+          }
+
+          doc.setFont('helvetica', 'bold')
+          doc.text(`${index + 1}. ${rec.title}`, margin, yPosition)
+          yPosition += 6
+
+          doc.setFont('helvetica', 'normal')
+          const descriptionLines = doc.splitTextToSize(rec.description, contentWidth)
+          doc.text(descriptionLines, margin, yPosition)
+          yPosition += (descriptionLines.length * 5) + 5
+
+          doc.setFontSize(8)
+          doc.text(`Priority: ${rec.priority.toUpperCase()} | Impact: ${rec.impact} | Effort: ${rec.effort} | Category: ${rec.category.toUpperCase()}`, margin, yPosition)
+          yPosition += 10
+          doc.setFontSize(10)
+        })
+
+      // Add CRO Analysis
+      if (yPosition > 200) {
+        doc.addPage()
+        yPosition = 20
+      }
+
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('CRO Analysis', margin, yPosition)
+      yPosition += 15
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+
+      analysisResult.croAnalysis.forEach((category: CROAnalysis, catIndex: number) => {
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${catIndex + 1}. ${category.category} (${category.score}%)`, margin, yPosition)
+        yPosition += 8
+
+        doc.setFont('helvetica', 'normal')
+        category.questions.forEach((question: Question, qIndex: number) => {
+          const questionText = `• ${question.question}`
+          const questionLines = doc.splitTextToSize(questionText, contentWidth)
+          doc.text(questionLines, margin + 5, yPosition)
+          yPosition += (questionLines.length * 5) + 3
+
+          doc.setFontSize(8)
+          doc.text(`Answer: ${question.answer.toUpperCase()} | Priority: ${question.priority}`, margin + 10, yPosition)
+          yPosition += 5
+          doc.setFontSize(10)
+        })
+        yPosition += 5
+      })
+
+      // Add UX Analysis
+      if (yPosition > 200) {
+        doc.addPage()
+        yPosition = 20
+      }
+
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('UX Analysis', margin, yPosition)
+      yPosition += 15
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+
+      analysisResult.uxAnalysis.forEach((category, catIndex) => {
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${catIndex + 1}. ${category.category} (${category.score}%)`, margin, yPosition)
+        yPosition += 8
+
+        doc.setFont('helvetica', 'normal')
+        category.questions.forEach((question, qIndex) => {
+          const questionText = `• ${question.question}`
+          const questionLines = doc.splitTextToSize(questionText, contentWidth)
+          doc.text(questionLines, margin + 5, yPosition)
+          yPosition += (questionLines.length * 5) + 3
+
+          doc.setFontSize(8)
+          doc.text(`Answer: ${question.answer.toUpperCase()} | Priority: ${question.priority}`, margin + 10, yPosition)
+          yPosition += 5
+          doc.setFontSize(10)
+        })
+        yPosition += 5
+      })
+
+      // Footer
+      const totalPages = doc.getNumberOfPages()
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i)
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, 290, { align: 'center' })
+        doc.text('Generated by CRO-UX Analysis Tool', pageWidth / 2, 295, { align: 'center' })
+      }
+
+      // Download the PDF
+      const filename = `cro_ux_analysis_${new URL(analysisResult.url).hostname.replace(/\./g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+      doc.save(filename)
+
+      toast({
+        title: "PDF Generated!",
+        description: `Report saved as ${filename}`,
+      })
+
+      // Track PDF generation
+      posthog.capture('pdf_generated', {
+        url: analysisResult.url,
+        filename: filename
+      })
+
+    } catch (error) {
+      console.error('PDF generation error:', error)
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating the PDF. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGeneratingPDF(false)
     }
   }
 
@@ -499,9 +693,21 @@ export default function AnalyzePage() {
                       </div>
                       
                       <div className="flex space-x-4">
-                        <Button onClick={() => window.print()}>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download PDF
+                        <Button 
+                          onClick={generatePDF}
+                          disabled={isGeneratingPDF}
+                        >
+                          {isGeneratingPDF ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating PDF...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download PDF
+                            </>
+                          )}
                         </Button>
                         <Button variant="outline" onClick={() => router.push('/dashboard')}>
                           <BarChart3 className="h-4 w-4 mr-2" />
