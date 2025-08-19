@@ -20,7 +20,10 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Bug,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -84,6 +87,18 @@ export default function AnalyzePage() {
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('')
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  
+  // Debug state
+  const [debugMode, setDebugMode] = useState(false)
+  const [debugLogs, setDebugLogs] = useState<string[]>([])
+  const [rawApiResponse, setRawApiResponse] = useState<any>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
+
+  const addDebugLog = (message: string) => {
+    if (debugMode) {
+      setDebugLogs((prev: string[]) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
+    }
+  }
 
   useEffect(() => {
     const urlParam = searchParams.get('url')
@@ -107,6 +122,11 @@ export default function AnalyzePage() {
     setIsAnalyzing(true)
     setProgress(0)
     setAnalysisResult(null)
+    setDebugLogs([])
+    setRawApiResponse(null)
+    setApiError(null)
+
+    addDebugLog(`Starting analysis for: ${urlToAnalyze}`)
 
     // Track the analysis event
     posthog.capture('analysis_started', {
@@ -128,9 +148,11 @@ export default function AnalyzePage() {
       for (const step of progressSteps) {
         setProgress(step.progress)
         setCurrentStep(step.step)
+        addDebugLog(`Progress: ${step.progress}% - ${step.step}`)
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
 
+      addDebugLog('Making API request to /api/analyze')
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
@@ -139,13 +161,36 @@ export default function AnalyzePage() {
         body: JSON.stringify({ url: urlToAnalyze }),
       })
 
+      addDebugLog(`API Response Status: ${response.status}`)
+      addDebugLog(`API Response Headers: ${JSON.stringify(Array.from(response.headers.entries()).reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}))}`)
+
+      const responseText = await response.text()
+      addDebugLog(`Raw API Response: ${responseText}`)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Analysis failed')
+        let errorMessage = 'Analysis failed'
+        try {
+          const errorData = JSON.parse(responseText)
+          errorMessage = errorData.error || 'Analysis failed'
+          setApiError(errorMessage)
+        } catch (e) {
+          setApiError(responseText)
+        }
+        throw new Error(errorMessage)
       }
 
-      const result = await response.json()
+      let result
+      try {
+        result = JSON.parse(responseText)
+        setRawApiResponse(result)
+        addDebugLog('Successfully parsed API response')
+      } catch (parseError) {
+        addDebugLog(`JSON Parse Error: ${parseError}`)
+        throw new Error('Invalid JSON response from API')
+      }
+
       setAnalysisResult(result)
+      addDebugLog(`Analysis completed. CRO Score: ${result.croScore}, UX Score: ${result.uxScore}`)
 
       // Track successful analysis
       posthog.capture('analysis_completed', {
@@ -162,6 +207,7 @@ export default function AnalyzePage() {
 
     } catch (error) {
       console.error('Analysis error:', error)
+      addDebugLog(`Analysis Error: ${error}`)
       toast({
         title: "Analysis Failed",
         description: "There was an error analyzing your website. Please try again.",
@@ -396,6 +442,14 @@ export default function AnalyzePage() {
             <span className="text-xl font-bold text-gray-900">CRO-UX Analysis</span>
           </div>
           <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => setDebugMode(!debugMode)}
+              className="flex items-center space-x-2"
+            >
+              {debugMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <span>{debugMode ? 'Hide' : 'Show'} Debug</span>
+            </Button>
             <Button variant="ghost" onClick={() => router.push('/')}>
               Home
             </Button>
@@ -410,6 +464,85 @@ export default function AnalyzePage() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Debug Panel */}
+        {debugMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-6xl mx-auto mb-8"
+          >
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Bug className="h-5 w-5 text-orange-600" />
+                  <span>Debug Mode</span>
+                </CardTitle>
+                <CardDescription>
+                  Real-time analysis of what's happening in the background
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="logs" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="logs">Debug Logs</TabsTrigger>
+                    <TabsTrigger value="api">API Response</TabsTrigger>
+                    <TabsTrigger value="errors">Errors</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="logs" className="space-y-4">
+                    <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
+                      {debugLogs.length === 0 ? (
+                        <div className="text-gray-500">No debug logs yet. Start an analysis to see logs.</div>
+                      ) : (
+                        debugLogs.map((log, index) => (
+                          <div key={index} className="mb-1">{log}</div>
+                        ))
+                      )}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setDebugLogs([])}
+                      size="sm"
+                    >
+                      Clear Logs
+                    </Button>
+                  </TabsContent>
+
+                  <TabsContent value="api" className="space-y-4">
+                    {rawApiResponse ? (
+                      <div className="bg-gray-100 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Raw API Response:</h4>
+                        <pre className="text-sm overflow-x-auto bg-white p-4 rounded border">
+                          {JSON.stringify(rawApiResponse, null, 2)}
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-8">
+                        No API response yet. Complete an analysis to see the response.
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="errors" className="space-y-4">
+                    {apiError ? (
+                      <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <h4 className="font-semibold text-red-800 mb-2">API Error:</h4>
+                        <pre className="text-sm text-red-700 bg-red-100 p-3 rounded border overflow-x-auto">
+                          {apiError}
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-8">
+                        No errors detected.
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* URL Input Section */}
         {!analysisResult && (
           <motion.div
