@@ -483,10 +483,11 @@ export default function AnalyzePage() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="logs" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="logs">Debug Logs</TabsTrigger>
                     <TabsTrigger value="api">API Response</TabsTrigger>
                     <TabsTrigger value="errors">Errors</TabsTrigger>
+                    <TabsTrigger value="test">API Test</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="logs" className="space-y-4">
@@ -536,6 +537,69 @@ export default function AnalyzePage() {
                         No errors detected.
                       </div>
                     )}
+
+                    <TabsContent value="test" className="space-y-4">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">API Connection Test</h4>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Test if the API endpoints are working correctly
+                          </p>
+                        </div>
+                        
+                        <div className="flex space-x-4">
+                          <Button 
+                            variant="outline"
+                            onClick={async () => {
+                              addDebugLog('Testing GET /api/test endpoint...')
+                              try {
+                                const response = await fetch('/api/test')
+                                const data = await response.json()
+                                addDebugLog(`Test GET response: ${JSON.stringify(data)}`)
+                                setRawApiResponse(data)
+                              } catch (error) {
+                                addDebugLog(`Test GET error: ${error}`)
+                                setApiError(error.toString())
+                              }
+                            }}
+                          >
+                            Test GET /api/test
+                          </Button>
+                          
+                          <Button 
+                            variant="outline"
+                            onClick={async () => {
+                              addDebugLog('Testing POST /api/test endpoint...')
+                              try {
+                                const response = await fetch('/api/test', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ test: 'data', url: url || 'example.com' })
+                                })
+                                const data = await response.json()
+                                addDebugLog(`Test POST response: ${JSON.stringify(data)}`)
+                                setRawApiResponse(data)
+                              } catch (error) {
+                                addDebugLog(`Test POST error: ${error}`)
+                                setApiError(error.toString())
+                              }
+                            }}
+                          >
+                            Test POST /api/test
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                          <h5 className="font-semibold text-blue-800 mb-2">What to check:</h5>
+                          <ul className="text-sm text-blue-700 space-y-1">
+                            <li>• API endpoints are responding (status 200)</li>
+                            <li>• Environment variables are loaded correctly</li>
+                            <li>• OpenAI API key is configured (if using AI analysis)</li>
+                            <li>• No CORS or network errors</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </TabsContent>
                   </TabsContent>
                 </Tabs>
               </CardContent>

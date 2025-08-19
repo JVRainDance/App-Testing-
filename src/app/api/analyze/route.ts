@@ -532,25 +532,32 @@ function generateRecommendations(croAnalysis: any[], uxAnalysis: any[]) {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('=== API Analysis Started ===')
+  
   try {
     const { url } = await request.json()
+    console.log('Received URL:', url)
     
     if (!url) {
+      console.log('Error: No URL provided')
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
     }
 
     // Validate URL
     try {
       new URL(url)
+      console.log('URL validation passed')
     } catch {
+      console.log('Error: Invalid URL format')
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
     }
 
     // Check if OpenAI API key is configured
+    console.log('Checking OpenAI API key...')
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ 
-        error: 'OpenAI API key is not configured. Please add OPENAI_API_KEY to your environment variables.' 
-      }, { status: 500 })
+      console.log('Warning: OpenAI API key is not configured, will use fallback analysis')
+    } else {
+      console.log('OpenAI API key is configured')
     }
 
     // Track analysis start in PostHog
@@ -564,6 +571,7 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString()
           }
         })
+        console.log('PostHog tracking: analysis started')
       } catch (error) {
         console.error('PostHog tracking error:', error)
       }
@@ -573,6 +581,14 @@ export async function POST(request: NextRequest) {
     console.log('Starting website content fetch...')
     const content = await fetchWebsiteContent(url)
     console.log('Website content fetched successfully')
+    console.log('Content summary:', {
+      title: content.title?.substring(0, 100),
+      description: content.description?.substring(0, 100),
+      headingsCount: content.headings.length,
+      forms: content.forms,
+      buttons: content.buttons,
+      imagesCount: content.images.length
+    })
     
     // Analyze CRO
     console.log('Starting CRO analysis...')
@@ -580,6 +596,10 @@ export async function POST(request: NextRequest) {
     for (const category of CRO_QUESTIONS) {
       console.log(`Analyzing CRO category: ${category.category}`)
       const analysis = await analyzeWithAI(content, category.questions, category.category)
+      console.log(`CRO category ${category.category} analysis completed:`, {
+        questionsCount: analysis.questions.length,
+        answers: analysis.questions.map((q: any) => q.answer)
+      })
       croResults.push({
         category: category.category,
         questions: analysis.questions,
@@ -594,6 +614,10 @@ export async function POST(request: NextRequest) {
     for (const category of UX_QUESTIONS) {
       console.log(`Analyzing UX category: ${category.category}`)
       const analysis = await analyzeWithAI(content, category.questions, category.category)
+      console.log(`UX category ${category.category} analysis completed:`, {
+        questionsCount: analysis.questions.length,
+        answers: analysis.questions.map((q: any) => q.answer)
+      })
       uxResults.push({
         category: category.category,
         questions: analysis.questions,
@@ -607,8 +631,15 @@ export async function POST(request: NextRequest) {
     const uxScore = Math.round(calculateScore(uxResults.flatMap((cat: any) => cat.questions)))
     const overallGrade = calculateOverallGrade(croScore, uxScore)
     
+    console.log('Final scores calculated:', {
+      croScore,
+      uxScore,
+      overallGrade
+    })
+    
     // Generate recommendations
     const recommendations = generateRecommendations(croResults, uxResults)
+    console.log('Generated recommendations:', recommendations.length)
     
     const result = {
       url,
@@ -620,6 +651,8 @@ export async function POST(request: NextRequest) {
       recommendations,
       timestamp: new Date().toISOString()
     }
+
+    console.log('Analysis completed successfully')
 
     // Track successful analysis in PostHog
     if (POSTHOG_API_KEY) {
@@ -635,15 +668,18 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString()
           }
         })
+        console.log('PostHog tracking: analysis completed')
       } catch (error) {
         console.error('PostHog tracking error:', error)
       }
     }
 
+    console.log('=== API Analysis Completed Successfully ===')
     return NextResponse.json(result)
     
   } catch (error) {
-    console.error('Analysis error:', error)
+    console.error('=== API Analysis Error ===')
+    console.error('Error details:', error)
     
     // Track error in PostHog
     if (POSTHOG_API_KEY) {
@@ -656,11 +692,13 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString()
           }
         })
+        console.log('PostHog tracking: error logged')
       } catch (posthogError) {
         console.error('PostHog error tracking failed:', posthogError)
       }
     }
     
+    console.log('=== API Analysis Failed ===')
     return NextResponse.json(
       { error: 'Analysis failed. Please try again.' },
       { status: 500 }
