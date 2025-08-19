@@ -524,7 +524,7 @@ export default function AnalyzePage() {
                     )}
                   </TabsContent>
 
-                                     <TabsContent value="errors" className="space-y-4">
+                   <TabsContent value="errors" className="space-y-4">
                      {apiError ? (
                        <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
                          <h4 className="font-semibold text-red-800 mb-2">API Error:</h4>
