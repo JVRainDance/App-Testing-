@@ -524,19 +524,20 @@ export default function AnalyzePage() {
                     )}
                   </TabsContent>
 
-                  <TabsContent value="errors" className="space-y-4">
-                    {apiError ? (
-                      <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-                        <h4 className="font-semibold text-red-800 mb-2">API Error:</h4>
-                        <pre className="text-sm text-red-700 bg-red-100 p-3 rounded border overflow-x-auto">
-                          {apiError}
-                        </pre>
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 text-center py-8">
-                        No errors detected.
-                      </div>
-                                         )}
+                                     <TabsContent value="errors" className="space-y-4">
+                     {apiError ? (
+                       <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                         <h4 className="font-semibold text-red-800 mb-2">API Error:</h4>
+                         <pre className="text-sm text-red-700 bg-red-100 p-3 rounded border overflow-x-auto">
+                           {apiError}
+                         </pre>
+                       </div>
+                     ) : (
+                       <div className="text-gray-500 text-center py-8">
+                         No errors detected.
+                       </div>
+                     )}
+                   </TabsContent>
 
                    <TabsContent value="test" className="space-y-4">
                      <div className="space-y-4">
@@ -600,7 +601,6 @@ export default function AnalyzePage() {
                        </div>
                      </div>
                    </TabsContent>
-                 </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
